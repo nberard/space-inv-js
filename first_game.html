@@ -1,0 +1,263 @@
+<html>
+<head>
+	<title>Space Invader</title>
+	<style type='text/css'>
+		body {
+			background: #FFF;
+		}
+	</style>
+	<script type="text/javascript" src="easeljs-0.7.1.min.js"></script>
+	<script type="text/javascript" src="ndgmr.Collision.js"></script>
+	<script type="text/javascript" src="Config.js"></script>
+	<script type="text/javascript" src="Vaisseau.js"></script>
+    <script type="text/javascript" src="Asteroide.js"></script>
+    <script type="text/javascript" src="Projectile.js"></script>
+    <script type="text/javascript" src="Bonus.js"></script>
+	<script type="text/javascript">
+	//mapping keys
+
+    function positionOK (x1,y1,x2,y2,debug) {
+        var ok = x1>=CADRE_X && y1>=CADRE_Y && x2<=CADRE_WIDTH+CADRE_X && y2<=CADRE_HEIGHT+CADRE_Y;
+        if(debug) console.debug('position (('+x1+','+y1+'),('+x2+','+y2+')) = '+ok);
+        // position ((248,196.5),(252,200.5)) = true
+        return ok;
+    }
+
+    function pixelCollision(bitmap1, bitmap2) {
+        ndgmr.DEBUG = true;
+        var collision = ndgmr.checkPixelCollision(bitmap1,bitmap2);
+        return collision;
+    }
+
+	var fond = new Image();
+	fond.src = 'Galaxy.png';
+
+	function rectangleIncluDansRectangle(r1x1, r1y1, r1x2, r1y2, r2x1, r2y1, r2x2, r2y2) {
+		var ok = r1x1>=r2x1 && r1x2<=r2x2 && r1y2<=r2y2 && r1y1>=r2y1;
+		//if(ok) console.debug('rectangleIncluDansRectangle');
+		return ok;
+	}
+
+	function rectangleToucheRectangle(r1x1, r1y1, r1x2, r1y2, r2x1, r2y1, r2x2, r2y2, debug) {
+		if(debug)
+		{
+			console.debug('rectangleToucheRectangle (('+r1x1+','+r1y1+'),('+r1x2+','+r1y2+'))  ,  (('+r2x1+','+r2y1+'),('+r2x2+','+r2y2+'))');
+			console.debug('cas 1 : '+r1x1+'>='+r2x1+' && '+r1x1+'<='+r2x2+' && '+r1y1+'>='+r2y1+' && '+r1y1+'<='+r2y2);
+			console.debug('cas 2 : '+r1x1+'>='+r2x1+' && '+r1x1+'<='+r2x2+' && '+r1y2+'>='+r2y1+' && '+r1y2+'<='+r2y2);
+			console.debug('cas 3 : '+r1x2+'>='+r2x1+' && '+r1x2+'<='+r2x2+' && '+r1y1+'>='+r2y1+' && '+r1y1+'<='+r2y2);
+			console.debug('cas 4 : '+r1x2+'>='+r2x1+' && '+r1x2+'<='+r2x2+' && '+r1y2+'>='+r2y1+' && '+r1y2+'<='+r2y2);
+		}
+		var cas1 = r1x1 >= r2x1 && r1x1 <=r2x2 && r1y1>=r2y1 && r1y1<=r2y2;
+		var cas2 = r1x1 >= r2x1 && r1x1 <=r2x2 && r1y2>=r2y1 && r1y2<=r2y2;
+		var cas3 = r1x2 >= r2x1 && r1x2 <=r2x2 && r1y1>=r2y1 && r1y1<=r2y2;
+		var cas4 = r1x2 >= r2x1 && r1x2 <=r2x2 && r1y2>=r2y1 && r1y2<=r2y2;
+		if(cas1) console.debug('cas1');
+		if(cas2) console.debug('cas2');
+		if(cas3) console.debug('cas3');
+		if(cas4) console.debug('cas4');
+		//console.debug('cas1='+cas1);
+		//console.debug('cas2='+cas2);
+		//console.debug('cas3='+cas3);
+		//console.debug('cas4='+cas4);
+		//console.debug('rectangleToucheRectangle (('+r1x1+','+r1y1+'),('+r1x2+','+r1y2+'))  ,  (('+r2x1+','+r2y1+'),('+r2x2+','+r2y2+'))');
+		var ok = cas1 || cas2 || cas3 || cas4;
+		//if(ok) console.debug('rectangleToucheRectangle');
+		return ok;
+	}
+
+	function positionOK(x1,y1,x2,y2,debug) {
+		var ok = x1>=CADRE_X && y1>=CADRE_Y && x2<=CADRE_WIDTH+CADRE_X && y2<=CADRE_HEIGHT+CADRE_Y;
+		if(debug) console.debug('position (('+x1+','+y1+'),('+x2+','+y2+')) = '+ok);
+		// position ((248,196.5),(252,200.5)) = true
+		return ok;
+    }
+
+	window.addEventListener('load', function () {
+	  var elem = document.getElementById('canvasElem');
+	  if (!elem || !elem.getContext) {
+		return;
+	  }
+
+
+	  context = elem.getContext('2d');
+	  if (!context) {
+		return;
+	  }
+
+	  // Le navigateur est compatible, on peut continuer: On initialise le jeu.
+        var vaisseau = new Vaisseau(CADRE_X + POSITION_VAISSEAU_INIT_X,CADRE_Y + POSITION_VAISSEAU_INIT_Y);
+	canvas = new SpaceCanvas(context,vaisseau);
+	canvas.init();
+        function checkMove(e) {
+            if(keyListened.indexOf(e.keyCode)!=-1) {
+                if(e.keyCode == KEY_PAUSE)
+                    canvas.pause = !canvas.pause;
+                else canvas.keyPressed[e.keyCode] = true;
+            }
+        }
+
+        function checkUnMove(e) {
+            if(keyListened.indexOf(e.keyCode)!=-1)
+                canvas.keyPressed[e.keyCode] = false;
+        }
+
+    window.document.onkeydown = checkMove;
+	window.document.onkeyup = checkUnMove;
+	setInterval("canvas.refresh()", 40);
+
+	}, false);
+
+	function SpaceCanvas(context,vaisseau) {
+
+		this.context = context;
+		this.cptRefresh = 0;
+		this.score = 0;
+		this.gameOver = false;
+		this.pause = false;
+		this.vaisseau = vaisseau;
+		this.keyPressed = [];
+		this.asteroides = [];
+		this.bonus = [];
+		this.affichageEnCours = false;
+		this.keyPressed[KEY_LEFT] = false;
+		this.keyPressed[KEY_DOWN] = false;
+		this.keyPressed[KEY_UP] = false;
+		this.keyPressed[KEY_RIGHT] = false;
+		this.keyPressed[KEY_SPACE] = false;
+		this.frequenceAsteroid = FREQUENCE_ASTEROID;
+		this.init = function() {
+			this.drawSpace();
+			this.drawScore();
+			this.drawLives();
+			// console.debug('boucle');
+			for(i=0;i<this.asteroides.length;i++) {
+			// console.debug('asteroide boucle ('+this.asteroides[i].positionX+','+this.asteroides[i].positionY+')');
+				// console.debug('debut boucle '+i);
+				if(this.vaisseau.explosion) {
+					//console.debug('explosion '+vaisseau.cptExplosion);
+					if(this.vaisseau.cptExplosion==0) {
+						//console.debug(vaisseau.lives);
+						this.vaisseau.lives--;
+                        this.vaisseau.modeFire = FIRE_MODE_NORMAL;
+                        this.vaisseau.delaiTir = DELAI_TIR;
+						if(this.vaisseau.lives == 0)
+							this.gameOver = true;
+						else {
+							this.vaisseau.init();
+						}
+						this.vaisseau.explosion = false;
+						this.vaisseau.canFire = true;
+					}
+					else {
+						this.vaisseau.cptExplosion--;
+					}
+				}
+				if(this.vaisseau && !this.vaisseau.explosion) {
+					if(this.vaisseau.missileCollision(this.asteroides[i])) {
+						for(var j=0; j<BONUS.length; j++) {
+							var proba = PROBA_BONUS[BONUS[j]];
+							if(Math.random() <= proba) {
+								console.debug('new bonus '+BONUS[j]);
+								this.bonus.push(new Bonus(this.asteroides[i].positionX,this.asteroides[i].positionY, BONUS[j]));
+							}
+						}
+						if(this.asteroides[i].getShot()) {
+							console.debug('asteroide '+i+' explose');
+							this.score+=this.asteroides[i].explose();
+						}
+					}
+					if(vaisseau.collision(this.asteroides[i])) {
+						this.vaisseau.explose();
+						this.vaisseau.canFire = false;
+					}
+				}
+				// console.debug('avance '+i);
+				if(this.asteroides[i] && this.asteroides[i].avancer()) {
+					// console.debug('affiche avance '+i);
+					this.asteroides[i].affiche(context);
+				}
+				else this.asteroides.splice(i,1);
+				// console.debug('fin boucle '+i);
+				if(this.asteroides[i] && this.asteroides[i].explosion) {
+				// console.debug('explosion '+i);
+					if(this.asteroides[i].cptExplosion==0)
+						this.asteroides.splice(i,1);
+					else {
+						this.asteroides[i].cptExplosion--;
+						this.asteroides[i].affiche(context);
+					}
+				}
+		    }
+			for(i=0;i<this.bonus.length;i++) {
+				if(this.bonus[i].avancer()) {
+					if(this.vaisseau.collision(this.bonus[i])) {
+						this.bonus[i].activate(this.vaisseau, this);
+						this.bonus.splice(i,1);
+					}
+					else this.bonus[i].affiche(context);
+				}
+				else this.bonus.splice(i,1);
+			}
+			// console.debug('fin boucle');
+			if(this.vaisseau) {
+				this.vaisseau.performMove(this.keyPressed,this.cptRefresh);
+				this.vaisseau.affiche(context);
+			}
+		}
+		this.refresh = function() {
+			if(!this.affichageEnCours && !this.pause) {
+				this.affichageEnCours = true;
+				this.cptRefresh++;
+				if(!this.gameOver) {
+					if((this.cptRefresh % this.frequenceAsteroid)==1)
+					// if(this.cptRefresh==1)
+						this.genereAsteroide();
+					this.init();
+					if(this.cptRefresh % SPEED_UP_EVERY == 0) {
+						console.debug('speeding up');
+						this.frequenceAsteroid --;
+					}
+				}
+				else this.endOfGame();
+				this.affichageEnCours = false;
+			}
+		}
+		this.genereAsteroide = function() {
+			// if(this.asteroides.length == 0)
+			for(var i=0; i<ASTEROID.length; i++) {
+				var proba = PROBA_ASTEROID[ASTEROID[i]];
+				if(Math.random() <= proba) {
+					var randY = CADRE_Y + (Math.random() * (CADRE_HEIGHT));
+					this.asteroides.push(new Asteroide(CADRE_WIDTH+CADRE_X,randY, ASTEROID[i]));
+				}
+			}
+		}
+		this.endOfGame = function() {
+			this.drawSpace();
+			context.fillStyle = "white";
+			context.fillText("GAME OVER ! Ton score : "+this.score, 200, 200);
+		}
+		this.drawSpace = function() {
+			context.drawImage(fond,CADRE_X,CADRE_Y);
+		}
+		this.drawScore = function() {
+			context.fillStyle = "green";
+			context.fillRect(CADRE_X + CADRE_WIDTH - GAME_OVER_WIDTH, CADRE_Y, GAME_OVER_WIDTH, GAME_OVER_HEIGHT);
+			context.fillStyle = "white";
+			context.fillText("Score : "+this.score, CADRE_X + CADRE_WIDTH - GAME_OVER_WIDTH + 5, CADRE_Y + 15);
+		}
+		this.drawLives = function() {
+			for(var i=0 ;i<this.vaisseau.lives; i++)
+				context.drawImage(this.vaisseau.bitmapIcone.image, CADRE_X + (i * (this.vaisseau.bitmapIcone.image.width + 5)), CADRE_Y);
+		}
+	}
+	</script>
+</head>
+<body>
+	<div id='conteneur'>
+	<canvas id="canvasElem" width="600" height="600">
+		IE Sucks! <a href="http://www.getfirefox.net/">Télécharge Firefox !!</a>
+	</canvas>	
+	</div>
+</body>
+</html>
